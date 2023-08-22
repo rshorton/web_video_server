@@ -53,48 +53,34 @@ WebVideoServer::WebVideoServer(rclcpp::Node::SharedPtr &nh, rclcpp::Node::Shared
     nh_(nh), handler_group_(
         async_web_server_cpp::HttpReply::stock_reply(async_web_server_cpp::HttpReply::not_found))
 {
-  rclcpp::Parameter parameter;
-  if (private_nh->get_parameter("port", parameter)) {
-    port_ = parameter.as_int();
-  } else {
-    port_ = 8080;
-  }
-  if (private_nh->get_parameter("verbose", parameter)) {
-    __verbose = parameter.as_bool();
-  } else {
-    __verbose = true;
-  }
+  private_nh->declare_parameter("port", 8080);
+  port_ = private_nh->get_parameter("port").as_int();
+  RCLCPP_DEBUG(nh_->get_logger(), "port: %d", port_);  
 
-  if (private_nh->get_parameter("address", parameter)) {
-    address_ = parameter.as_string();
-  } else {
-    address_ = "0.0.0.0";
-  }
+  private_nh->declare_parameter("verbose", false);
+  __verbose = private_nh->get_parameter("verbose").as_bool();
+  RCLCPP_DEBUG(nh_->get_logger(), "verbose: %d", __verbose);  
 
-  int server_threads;
-  if (private_nh->get_parameter("server_threads", parameter)) {
-    server_threads = parameter.as_int();
-  } else {
-    server_threads = 1;
-  }
+  private_nh->declare_parameter("address", "0.0.0.0");
+  address_ = private_nh->get_parameter("address").as_string();
+  RCLCPP_DEBUG(nh_->get_logger(), "address: %s", address_.c_str());  
 
-  if (private_nh->get_parameter("ros_threads", parameter)) {
-    ros_threads_ = parameter.as_int();
-  } else {
-    ros_threads_ = 2;
-  }
-  if (private_nh->get_parameter("publish_rate", parameter)) {
-    publish_rate_ = parameter.as_double();
-  } else {
-    publish_rate_ = -1.0;
-  }
+  private_nh->declare_parameter("server_threads", 1);
+  int server_threads = private_nh->get_parameter("server_threads").as_int();
+  RCLCPP_DEBUG(nh_->get_logger(), "server_threads: %d", server_threads);  
 
-  if (private_nh->get_parameter("default_stream_type", parameter)) {
-    __default_stream_type = parameter.as_string();
-  } else {
-    __default_stream_type = "mjpeg";
-  }
+  private_nh->declare_parameter("ros_threads", 2);
+  ros_threads_ = private_nh->get_parameter("ros_threads").as_int();
+  RCLCPP_DEBUG(nh_->get_logger(), "ros_threads: %d", ros_threads_);  
 
+  private_nh->declare_parameter("publish_rate", -1.0);
+  publish_rate_ = private_nh->get_parameter("publish_rate").as_double();
+  RCLCPP_DEBUG(nh_->get_logger(), "publish_rate: %f", publish_rate_);  
+
+  private_nh->declare_parameter("default_stream_type", "mjpeg");
+  __default_stream_type = private_nh->get_parameter("default_stream_type").as_string();
+  RCLCPP_DEBUG(nh_->get_logger(), "default_stream_type: %s", __default_stream_type.c_str());  
+    
   stream_types_["mjpeg"] = boost::shared_ptr<ImageStreamerType>(new MjpegStreamerType());
   stream_types_["png"] = boost::shared_ptr<ImageStreamerType>(new PngStreamerType());
   stream_types_["ros_compressed"] = boost::shared_ptr<ImageStreamerType>(new RosCompressedStreamerType());
